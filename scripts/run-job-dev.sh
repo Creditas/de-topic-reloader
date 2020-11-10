@@ -81,7 +81,7 @@ cat <<EOF >"${stepsFile}"
       "topic.reloader.main.TopicReloaderApp",
       "hdfs://${HDFS_PATH}/${JAR}",
       "${ID}",
-      "staging",
+      "dev",
       "${topic_name}"
     ]
   }

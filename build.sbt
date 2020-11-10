@@ -16,7 +16,6 @@ lazy val root = (project in file(".")).settings(
     /* execution */
     "org.apache.spark"  %% "spark-core"   % sparkVersion % Provided,
     "org.apache.spark"  %% "spark-sql"    % sparkVersion % Provided,
-    "org.apache.spark"  %% "spark-sql-kafka-0-10" % sparkVersion % Provided,
     "org.apache.hadoop" % "hadoop-common" % hadoopVersion % Provided,
     "org.apache.hadoop" % "hadoop-client" % hadoopVersion % Provided,
     "org.apache.hadoop" % "hadoop-aws"    % hadoopVersion % Provided,
@@ -24,6 +23,7 @@ lazy val root = (project in file(".")).settings(
     "com.typesafe"      % "config"       % "1.4.0",
     "za.co.absa"       %% "abris"        % "4.0.0",
     "org.apache.spark" %% "spark-avro"   % sparkVersion,
+    "org.apache.spark"  %% "spark-sql-kafka-0-10" % sparkVersion,
     "io.circe"         %% "circe-core"   % circeVersion,
     "io.circe"         %% "circe-parser" % circeVersion,
     /* test */
