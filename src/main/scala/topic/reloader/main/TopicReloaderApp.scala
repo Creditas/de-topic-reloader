@@ -19,7 +19,7 @@ object TopicReloaderApp extends App {
   val submissionId = args(0)
   val env = args(1)
   val topicName = args(2)
-//  val endTime = args(2)
+  //  val endTime = args(3) //TODO: faltando adicionar a data final de processamento
 
   val conf = ConfigFactory.load().getConfig(env)
 
@@ -28,6 +28,10 @@ object TopicReloaderApp extends App {
   val subdomain = splittedTopicName(2)
   val eventName = splittedTopicName(3)
 
+  //TODO: incluir passwords na parameter store
+  val SR_PASSWORD = ""
+  val KAFKA_PASSWORD = ""
+
   val inputDir = conf.getString("input-path-pattern")
     .replace("EVENT_NAME", eventName)
     .replace("SUBDOMAIN", subdomain)
@@ -35,17 +39,11 @@ object TopicReloaderApp extends App {
 
   val spark: SparkSession = WrappedSession.buildSparkSession(AppName("topic-reloader"))
 
-  val sourceDF = spark.read
-                      .format("avro")
-                      .option("mergeSchema", "true")
-                      .load(inputDir)
-
   val schemaRegistryAddr = conf.getString("schema-registry-address")
   val registryConfig = Map(
     AbrisConfig.SCHEMA_REGISTRY_URL -> schemaRegistryAddr,
     "basic.auth.credentials.source" -> "USER_INFO",
-    //TODO: parametrizar autenticacao do schema registry
-    "basic.auth.user.info" -> conf.getString("schema-registry-api-key")+":<SR_PASSWORD>"
+    "basic.auth.user.info" -> (conf.getString("schema-registry-api-key")+":"+SR_PASSWORD)
   )
 
   val reloadedTopicName = s"$topicName-reloaded"
@@ -56,17 +54,21 @@ object TopicReloaderApp extends App {
     .andTopicNameStrategy(reloadedTopicName)
     .usingSchemaRegistry(registryConfig)
 
+  val sourceDF = spark.read
+    .format("avro")
+    .option("mergeSchema", "true")
+    .load(inputDir)
+    .drop("version", "year", "month", "day") //partitioning columns, they're not on the original event.
+
   val allColumns = struct(sourceDF.columns.head, sourceDF.columns.tail: _*)
   val avroDF = sourceDF.select(to_avro(allColumns, toAvroConfig1) as 'value)
 
-  //TODO: parametrizar senha kafka
   avroDF.write
     .format("kafka")
     .option("topic", reloadedTopicName)
     .option("kafka.bootstrap.servers", conf.getString("kafka-bootstrap-servers"))
     .option("kafka.security.protocol", "SASL_SSL")
-    .option("kafka.sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""+conf.getString("kafka-api-key")+"\" password=\"<KAFKA_BROKER_PASSWORD>>\";")
+    .option("kafka.sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""+conf.getString("kafka-api-key")+"\" password=\""+KAFKA_PASSWORD+"\";")
     .option("kafka.sasl.mechanism", "PLAIN")
     .save()
-
 }
