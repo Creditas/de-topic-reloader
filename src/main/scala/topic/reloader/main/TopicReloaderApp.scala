@@ -66,8 +66,16 @@ object TopicReloaderApp extends App {
     .load(inputDir)
     .drop("version", "year", "month", "day") //partitioning columns, they're not on the original event.
 
+  sourceDF.printSchema()
+  sourceDF.show()
+  println(s"src count: ${sourceDF.count()}")
+
   val allColumns = struct(sourceDF.columns.head, sourceDF.columns.tail: _*)
   val avroDF = sourceDF.select(to_avro(allColumns, toAvroConfig1) as 'value)
+
+  avroDF.printSchema()
+  avroDF.show()
+  println(s"dst count: ${avroDF.count()}")
 
   avroDF.write
     .format("kafka")
