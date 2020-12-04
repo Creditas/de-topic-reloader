@@ -43,7 +43,7 @@ object TopicReloaderApp extends App {
   val registryConfig = Map(
     AbrisConfig.SCHEMA_REGISTRY_URL -> schemaRegistryAddr,
     "basic.auth.credentials.source" -> "USER_INFO",
-    "basic.auth.user.info" -> (conf.getString("schema-registry-api-key")+":"+SR_PASSWORD)
+    "basic.auth.user.info" -> (conf.getString("schema-registry-api-key") + ":" + SR_PASSWORD)
   )
 
   val reloadedTopicName = s"$topicName-reloaded"
@@ -68,7 +68,7 @@ object TopicReloaderApp extends App {
     .option("topic", reloadedTopicName)
     .option("kafka.bootstrap.servers", conf.getString("kafka-bootstrap-servers"))
     .option("kafka.security.protocol", "SASL_SSL")
-    .option("kafka.sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""+conf.getString("kafka-api-key")+"\" password=\""+KAFKA_PASSWORD+"\";")
+    .option("kafka.sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"" + conf.getString("kafka-api-key") + "\" password=\"" + KAFKA_PASSWORD + "\";")
     .option("kafka.sasl.mechanism", "PLAIN")
     .save()
 }
