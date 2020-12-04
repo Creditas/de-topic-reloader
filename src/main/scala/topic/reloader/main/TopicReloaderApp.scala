@@ -62,7 +62,7 @@ object TopicReloaderApp extends App {
 
   val sourceDF = spark.read
     .format("avro")
-    .option("mergeSchema", "true")
+    .option("avroSchema", latestSchema.toString)
     .load(inputDir)
     .drop("version", "year", "month", "day") //partitioning columns, they're not on the original event.
 
