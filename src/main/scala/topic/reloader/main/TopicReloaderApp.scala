@@ -7,6 +7,8 @@ import org.apache.spark.sql.functions.struct
 import topic.reloader.WrappedSession
 import topic.reloader.lib.model.AppName
 import za.co.absa.abris.avro.functions.to_avro
+import za.co.absa.abris.avro.read.confluent.SchemaManagerFactory
+import za.co.absa.abris.avro.registry.{LatestVersion, SchemaSubject}
 import za.co.absa.abris.config.{AbrisConfig, ToAvroConfig}
 
 object TopicReloaderApp extends App {
@@ -45,8 +47,12 @@ object TopicReloaderApp extends App {
     "basic.auth.credentials.source" -> "USER_INFO",
     "basic.auth.user.info" -> (conf.getString("schema-registry-api-key") + ":" + SR_PASSWORD)
   )
+  val schemaManager = SchemaManagerFactory.create(registryConfig)
+
 
   val reloadedTopicName = s"$topicName-reloaded"
+  val subject = SchemaSubject.usingTopicNameStrategy(reloadedTopicName)
+  val latestSchema = schemaManager.getSchemaBySubjectAndVersion(subject, LatestVersion())
 
   val toAvroConfig1: ToAvroConfig = AbrisConfig
     .toConfluentAvro
